@@ -9,7 +9,7 @@ __pycache__/
 *$py.class
 
 # Ignore environment-specific files
-# .env
+.env
 
 # Ignore IDE-specific files
 .vscode/
