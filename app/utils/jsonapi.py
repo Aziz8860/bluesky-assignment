@@ -1,8 +1,13 @@
 from flask import jsonify, make_response
 
-def jsonapi_response(data, status=200):
+def jsonapi_response(data, meta=None, status=200):
+    response = {
+        'data': data
+    }
+    if meta:
+        response['meta'] = meta
     return make_response(
-        jsonify({'data': data}),
+        jsonify(response),
         status,
         {'Content-Type': 'application/vnd.api+json'}
     )

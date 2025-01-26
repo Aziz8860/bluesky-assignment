@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, make_response
+from flask import Blueprint
 from app.models.pokemon import Pokemon
 from app.utils.jsonapi import jsonapi_response, jsonapi_error
+from flask import request
 
 pokemon_bp = Blueprint('pokemon', __name__)
 
@@ -36,3 +37,39 @@ def format_pokemon(pokemon):
             'sprite_url': pokemon.sprite_url
         }
     }
+
+@pokemon_bp.route('/paginated', methods=['GET'])
+def get_paginated_pokemon():
+    page = request.args.get('page', default=1, type=int)
+    page_size = request.args.get('pageSize', default=10, type=int)
+    
+    if page < 1:
+        return jsonapi_error(
+            status=400,
+            title="Bad Request",
+            detail="Page must be greater than or equal to 1"
+        ), 400
+    
+    if page_size < 1 or page_size > 100:
+        return jsonapi_error(
+            status=400,
+            title="Bad Request",
+            detail="Page size must be between 1 and 100"
+        ), 400
+    
+    paginated_pokemon = Pokemon.query.paginate(
+        page=page,
+        per_page=page_size,
+        error_out=False
+    )
+    
+    return jsonapi_response(
+        data=[format_pokemon(p) for p in paginated_pokemon.items],
+        meta={
+            'page': paginated_pokemon.page,
+            'pageSize': paginated_pokemon.per_page,
+            'totalPages': paginated_pokemon.pages,
+            'totalItems': paginated_pokemon.total
+        },
+        status=200
+    )
